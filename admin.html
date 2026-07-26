@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="noindex, nofollow" name="robots"/>
+  <title>
+   MishGa Console
+  </title>
+  <link href="assets/mishga-logo.png" rel="icon" type="image/png"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet"/>
+  <link href="css/style.css" rel="stylesheet"/>
+  <link href="css/admin.css" rel="stylesheet"/>
+ </head>
+ <body class="console-body">
+  <main class="access-screen" id="accessScreen">
+   <section class="access-card">
+    <a class="brand" href="/">
+     <img alt="MishGa" src="assets/mishga-logo.png"/>
+     <span>
+      Mish
+      <span>
+       Ga
+      </span>
+     </span>
+    </a>
+    <div class="access-icon">
+     <i class="fa-solid fa-lock">
+     </i>
+    </div>
+    <p class="eyebrow">
+     <span>
+     </span>
+     Private workspace
+    </p>
+    <h1>
+     Sign in to your
+     <br/>
+     <em>
+      workspace.
+     </em>
+    </h1>
+    <p class="access-copy">
+     Manage and respond to your incoming project enquiries in one place.
+    </p>
+    <form id="loginForm">
+     <label for="adminPassword">
+      Administrator password
+     </label>
+     <div class="password-field">
+      <input autocomplete="current-password" id="adminPassword" placeholder="Enter your password" required="" type="password"/>
+      <button aria-label="Show password" id="passwordToggle" type="button">
+       <i class="fa-regular fa-eye">
+       </i>
+      </button>
+     </div>
+     <button class="btn btn-gold" type="submit">
+      Continue
+      <i class="fa-solid fa-arrow-right">
+      </i>
+     </button>
+     <p aria-live="polite" class="login-error">
+     </p>
+    </form>
+   </section>
+  </main>
+  <script src="js/admin.js">
+  </script>
+ </body>
+</html>

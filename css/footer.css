@@ -1,0 +1,13 @@
+.footer-grid.footer-grid-simple {
+  grid-template-columns: 2fr 1fr 1.25fr
+}
+
+@media(max-width:700px) {
+  .footer-grid.footer-grid-simple {
+    grid-template-columns: 1fr 1fr
+  }
+
+  .footer-grid.footer-grid-simple .footer-brand {
+    grid-column: span 2
+  }
+}

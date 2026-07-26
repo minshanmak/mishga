@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="noindex, nofollow" name="robots"/>
+  <title>
+   MishGa Console — Enquiries
+  </title>
+  <link href="assets/mishga-logo.png" rel="icon" type="image/png"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet"/>
+  <link href="css/style.css" rel="stylesheet"/>
+  <link href="css/admin.css" rel="stylesheet"/>
+ </head>
+ <body class="console-body">
+  <main class="console">
+   <aside class="console-sidebar">
+    <a class="brand" href="/">
+     <img alt="MishGa" src="assets/mishga-logo.png"/>
+     <span>
+      Mish
+      <span>
+       Ga
+      </span>
+     </span>
+    </a>
+    <p class="console-label">
+     Workspace
+    </p>
+    <nav>
+     <a class="selected" href="#enquiries">
+      <i class="fa-solid fa-inbox">
+      </i>
+      <span>
+       Enquiries
+      </span>
+      <b id="sidebarCount">
+       0
+      </b>
+     </a>
+     <a href="/projects">
+      <i class="fa-solid fa-layer-group">
+      </i>
+      <span>
+       Projects
+      </span>
+     </a>
+     <a href="/">
+      <i class="fa-solid fa-arrow-up-right-from-square">
+      </i>
+      <span>
+       View website
+      </span>
+     </a>
+    </nav>
+    <div class="sidebar-user">
+     <span class="user-avatar">
+      MG
+     </span>
+     <span>
+      <strong>
+       MishGa Admin
+      </strong>
+      <small>
+       Administrator
+      </small>
+     </span>
+     <button aria-label="Log out" id="logoutButton" title="Log out">
+      <i class="fa-solid fa-arrow-right-from-bracket">
+      </i>
+     </button>
+    </div>
+   </aside>
+   <section class="console-main" id="enquiries">
+    <header class="console-header">
+     <div>
+      <p class="eyebrow">
+       <span>
+       </span>
+       Inbox
+      </p>
+      <h1>
+       Project enquiries
+      </h1>
+      <p>
+       Everything your next client shared with you, organized in one focused view.
+      </p>
+     </div>
+     <button aria-label="Toggle navigation" class="mobile-menu" id="mobileMenu">
+      <i class="fa-solid fa-bars">
+      </i>
+     </button>
+    </header>
+    <div class="stat-row">
+     <article>
+      <span class="stat-icon gold">
+       <i class="fa-solid fa-inbox">
+       </i>
+      </span>
+      <div>
+       <small>
+        All enquiries
+       </small>
+       <strong id="totalCount">
+        0
+       </strong>
+      </div>
+     </article>
+     <article>
+      <span class="stat-icon green">
+       <i class="fa-solid fa-sun">
+       </i>
+      </span>
+      <div>
+       <small>
+        Received today
+       </small>
+       <strong id="todayCount">
+        0
+       </strong>
+      </div>
+     </article>
+     <article>
+      <span class="stat-icon purple">
+       <i class="fa-solid fa-clock">
+       </i>
+      </span>
+      <div>
+       <small>
+        Latest message
+       </small>
+       <strong id="latestTime">
+        —
+       </strong>
+      </div>
+     </article>
+    </div>
+    <section class="inbox-card">
+     <div class="inbox-tools">
+      <div>
+       <h2>
+        All messages
+       </h2>
+       <span id="messageCount">
+        0 messages
+       </span>
+      </div>
+      <div class="tool-actions">
+       <label class="search">
+        <i class="fa-solid fa-magnifying-glass">
+        </i>
+        <input id="searchInput" placeholder="Search name, email or service" type="search"/>
+       </label>
+       <button aria-label="Delete all messages" class="icon-button danger" id="clearButton" title="Delete all messages">
+        <i class="fa-solid fa-trash-can">
+        </i>
+       </button>
+      </div>
+     </div>
+     <div class="message-list" id="enquiryList">
+     </div>
+     <div class="empty-state" id="emptyState">
+      <div>
+       <i class="fa-regular fa-message">
+       </i>
+      </div>
+      <h3>
+       Your inbox is clear
+      </h3>
+      <p>
+       New contact form submissions will show up here.
+      </p>
+     </div>
+    </section>
+   </section>
+  </main>
+  <template id="messageTemplate">
+   <article class="message-item">
+    <button class="message-main" type="button">
+     <span class="message-initial">
+     </span>
+     <span class="message-summary">
+      <strong>
+      </strong>
+      <small>
+      </small>
+     </span>
+     <span class="message-service">
+     </span>
+     <time>
+     </time>
+     <i class="fa-solid fa-chevron-right">
+     </i>
+    </button>
+    <div class="message-detail">
+     <div class="detail-grid">
+      <div>
+       <small>
+        Email
+       </small>
+       <a class="detail-email">
+       </a>
+      </div>
+      <div>
+       <small>
+        Phone
+       </small>
+       <a class="detail-phone">
+       </a>
+      </div>
+      <div>
+       <small>
+        Service
+       </small>
+       <span class="detail-service">
+       </span>
+      </div>
+      <div>
+       <small>
+        Received
+       </small>
+       <span class="detail-date">
+       </span>
+      </div>
+     </div>
+     <div class="detail-message">
+      <small>
+       Project details
+      </small>
+      <p>
+      </p>
+     </div>
+     <div class="detail-actions">
+      <a class="btn btn-gold reply-link">
+       <i class="fa-regular fa-paper-plane">
+       </i>
+       Reply by email
+      </a>
+      <button class="delete-message">
+       <i class="fa-solid fa-trash-can">
+       </i>
+       Delete enquiry
+      </button>
+     </div>
+    </div>
+   </article>
+  </template>
+  <script src="js/dashboard.js">
+  </script>
+ </body>
+</html>
