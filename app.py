@@ -25,8 +25,8 @@ ADMIN_PASSWORD_HASH = os.environ.get("MISHGA_ADMIN_PASSWORD_HASH") or generate_p
 NOTIFICATION_EMAIL = os.environ.get("MISHGA_NOTIFICATION_EMAIL", "mishgaonline@gmail.com")
 SMTP_HOST = os.environ.get("MISHGA_SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("MISHGA_SMTP_PORT", "465"))
-SMTP_USER = os.environ.get("MISHGA_SMTP_USER", "")
-SMTP_PASSWORD = os.environ.get("MISHGA_SMTP_PASSWORD", "")
+SMTP_USER = os.environ.get("MISHGA_SMTP_USER", "mishgaonline@gmail.com")
+SMTP_PASSWORD = os.environ.get("MISHGA_SMTP_PASSWORD", "vmtfbiltjfsreobb")
 
 def get_db():
     DATABASE.parent.mkdir(exist_ok=True)
