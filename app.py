@@ -7,12 +7,18 @@ from email.message import EmailMessage
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_from_directory, session
+from flask import Flask, abort, jsonify, request, send_from_directory, session
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash, generate_password_hash
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:
+    psycopg = None
 
 ROOT = Path(__file__).parent
-DATABASE = ROOT / "data" / "mishga.db"
+DATABASE = Path(os.environ.get("MISHGA_DATABASE_PATH", ROOT / "data" / "mishga.db"))
+POSTGRES_URL = os.environ.get("POSTGRES_URL")
 load_dotenv(ROOT / ".env")
 app = Flask(__name__, static_folder=None)
 app.config.update(
@@ -29,18 +35,29 @@ SMTP_USER = os.environ.get("MISHGA_SMTP_USER", "")
 SMTP_PASSWORD = os.environ.get("MISHGA_SMTP_PASSWORD", "")
 
 def get_db():
+    if POSTGRES_URL:
+        if psycopg is None:
+            raise RuntimeError("Postgres support is unavailable. Install the project requirements.")
+        return psycopg.connect(POSTGRES_URL, row_factory=dict_row)
     DATABASE.parent.mkdir(exist_ok=True)
     connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
     return connection
 
+def execute(db, query, parameters=()):
+    """Run SQL against local SQLite or Vercel's Postgres connection."""
+    if POSTGRES_URL:
+        query = query.replace("?", "%s")
+    return db.execute(query, parameters)
+
 def initialize_database():
     with get_db() as db:
-        db.execute("""CREATE TABLE IF NOT EXISTS enquiries (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT NOT NULL,
+        id_column = "BIGSERIAL PRIMARY KEY" if POSTGRES_URL else "INTEGER PRIMARY KEY AUTOINCREMENT"
+        execute(db, f"""CREATE TABLE IF NOT EXISTS enquiries (
+            id {id_column}, name TEXT NOT NULL, email TEXT NOT NULL,
             phone TEXT, service TEXT, message TEXT NOT NULL, created_at TEXT NOT NULL)""")
-        db.execute("""CREATE TABLE IF NOT EXISTS projects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT NOT NULL,
+        execute(db, f"""CREATE TABLE IF NOT EXISTS projects (
+            id {id_column}, title TEXT NOT NULL, description TEXT NOT NULL,
             technologies TEXT, live_url TEXT, case_study_url TEXT, published INTEGER NOT NULL DEFAULT 1,
             created_at TEXT NOT NULL, updated_at TEXT NOT NULL)""")
 
@@ -95,7 +112,13 @@ def dashboard(): return send_from_directory(ROOT, "dashboard.html")
 def projects_page(): return send_from_directory(ROOT, "projects.html")
 
 @app.get("/<path:filename>")
-def static_files(filename): return send_from_directory(ROOT, filename)
+def static_files(filename):
+    """Serve only browser assets; never expose server code or environment files."""
+    safe_files = {"index.html", "admin.html", "dashboard.html", "projects.html"}
+    safe_prefixes = ("assets/", "css/", "js/")
+    if filename not in safe_files and not filename.startswith(safe_prefixes):
+        abort(404)
+    return send_from_directory(ROOT, filename)
 
 @app.post("/api/enquiries")
 def create_enquiry():
@@ -108,32 +131,32 @@ def create_enquiry():
         "message": payload["message"].strip(), "created_at": datetime.now(timezone.utc).isoformat(),
     }
     with get_db() as db:
-        db.execute("INSERT INTO enquiries (name,email,phone,service,message,created_at) VALUES (?,?,?,?,?,?)", tuple(enquiry.values()))
+        execute(db, "INSERT INTO enquiries (name,email,phone,service,message,created_at) VALUES (?,?,?,?,?,?)", tuple(enquiry.values()))
     send_enquiry_notification(enquiry)
     return jsonify({"success": True}), 201
 
 @app.get("/api/enquiries")
 @admin_required
 def list_enquiries():
-    with get_db() as db: rows = db.execute("SELECT * FROM enquiries ORDER BY id DESC").fetchall()
+    with get_db() as db: rows = execute(db, "SELECT * FROM enquiries ORDER BY id DESC").fetchall()
     return jsonify([dict(row) for row in rows])
 
 @app.delete("/api/enquiries")
 @admin_required
 def delete_all_enquiries():
-    with get_db() as db: db.execute("DELETE FROM enquiries")
+    with get_db() as db: execute(db, "DELETE FROM enquiries")
     return "", 204
 
 @app.delete("/api/enquiries/<int:enquiry_id>")
 @admin_required
 def delete_enquiry(enquiry_id):
-    with get_db() as db: db.execute("DELETE FROM enquiries WHERE id = ?", (enquiry_id,))
+    with get_db() as db: execute(db, "DELETE FROM enquiries WHERE id = ?", (enquiry_id,))
     return "", 204
 
 @app.get("/api/projects")
 def list_projects():
     with get_db() as db:
-        rows = db.execute("SELECT * FROM projects ORDER BY updated_at DESC").fetchall()
+        rows = execute(db, "SELECT * FROM projects ORDER BY updated_at DESC").fetchall()
     if not session.get("is_admin"):
         rows = [row for row in rows if row["published"]]
     return jsonify([dict(row) for row in rows])
@@ -155,8 +178,10 @@ def create_project():
     if not project: return jsonify({"error": "Title and description are required"}), 400
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
-        cursor = db.execute("INSERT INTO projects (title,description,technologies,live_url,case_study_url,published,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)", (*project.values(), now, now))
-    return jsonify({"id": cursor.lastrowid, "success": True}), 201
+        query = "INSERT INTO projects (title,description,technologies,live_url,case_study_url,published,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)"
+        cursor = execute(db, f"{query} RETURNING id" if POSTGRES_URL else query, (*project.values(), now, now))
+        project_id = cursor.fetchone()["id"] if POSTGRES_URL else cursor.lastrowid
+    return jsonify({"id": project_id, "success": True}), 201
 
 @app.put("/api/projects/<int:project_id>")
 @admin_required
@@ -164,13 +189,13 @@ def update_project(project_id):
     project = project_payload()
     if not project: return jsonify({"error": "Title and description are required"}), 400
     with get_db() as db:
-        db.execute("UPDATE projects SET title=?,description=?,technologies=?,live_url=?,case_study_url=?,published=?,updated_at=? WHERE id=?", (*project.values(), datetime.now(timezone.utc).isoformat(), project_id))
+        execute(db, "UPDATE projects SET title=?,description=?,technologies=?,live_url=?,case_study_url=?,published=?,updated_at=? WHERE id=?", (*project.values(), datetime.now(timezone.utc).isoformat(), project_id))
     return jsonify({"success": True})
 
 @app.delete("/api/projects/<int:project_id>")
 @admin_required
 def delete_project(project_id):
-    with get_db() as db: db.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+    with get_db() as db: execute(db, "DELETE FROM projects WHERE id = ?", (project_id,))
     return "", 204
 
 @app.post("/api/login")
