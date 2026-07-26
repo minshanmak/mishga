@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
       message.textContent = 'Thanks! Your message has been sent successfully.';
       form.reset();
     } catch (error) {
-      message.textContent = 'Something went wrong. Please email us directly at hello@mishga.in.';
+      message.textContent = 'Something went wrong. Please email us directly at mishgaonline@gmail.com';
     } finally {
       button.disabled = false;
     }
