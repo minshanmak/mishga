@@ -99,26 +99,17 @@ def admin_required(handler):
         return handler(*args, **kwargs)
     return wrapped
 
-@app.get("/")
-def home(): return send_from_directory(ROOT, "index.html")
+DIST_DIR = ROOT / "frontend" / "dist"
 
-@app.get("/admin")
-def admin(): return send_from_directory(ROOT, "admin.html")
-
-@app.get("/dashboard")
-def dashboard(): return send_from_directory(ROOT, "dashboard.html")
-
-@app.get("/projects")
-def projects_page(): return send_from_directory(ROOT, "projects.html")
-
-@app.get("/<path:filename>")
-def static_files(filename):
-    """Serve only browser assets; never expose server code or environment files."""
-    safe_files = {"index.html", "admin.html", "dashboard.html", "projects.html"}
-    safe_prefixes = ("assets/", "css/", "js/")
-    if filename not in safe_files and not filename.startswith(safe_prefixes):
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_react(path):
+    # Skip serving if path starts with api (handled by explicit routes)
+    if path.startswith("api/"):
         abort(404)
-    return send_from_directory(ROOT, filename)
+    if path and (DIST_DIR / path).exists():
+        return send_from_directory(DIST_DIR, path)
+    return send_from_directory(DIST_DIR, "index.html")
 
 @app.post("/api/enquiries")
 def create_enquiry():
