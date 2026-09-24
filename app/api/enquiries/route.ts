@@ -19,11 +19,15 @@ export async function POST(request: Request) {
 
         const created_at = new Date().toISOString();
 
-        // 1. Save to Database
-        await sql`
-            INSERT INTO enquiries (name, email, phone, service, message, created_at)
-            VALUES (${name}, ${email}, ${phone}, ${service}, ${message}, ${created_at})
-        `;
+        // 1. Save to Database (Non-blocking)
+        try {
+            await sql`
+                INSERT INTO enquiries (name, email, phone, service, message, created_at)
+                VALUES (${name}, ${email}, ${phone}, ${service}, ${message}, ${created_at})
+            `;
+        } catch (dbError) {
+            console.warn("Database save failed, but proceeding with email:", dbError);
+        }
 
         // 2. Send Notification Email
         const transporter = nodemailer.createTransport({
